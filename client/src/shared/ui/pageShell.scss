@@ -1,0 +1,33 @@
+.pageShell {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .pageShell-head {
+    margin-bottom: 16px;
+  }
+  
+  .pageShell-title {
+    font-size: 28px;
+    font-weight: 900;
+    margin: 0;
+    color: rgba(245, 252, 255, 0.95);
+  }
+  
+  .pageShell-subtitle {
+    margin-top: 6px;
+    font-size: 14px;
+    color: rgba(210, 245, 255, 0.65);
+  }
+  
+  .pageShell-body {
+    padding: 18px;
+    border-radius: 22px;
+  
+    background: rgba(10, 30, 38, 0.35);
+    border: 1px solid rgba(140, 220, 255, 0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  

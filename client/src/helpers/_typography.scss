@@ -1,0 +1,130 @@
+@use "sass:map";
+@use "sass:math";
+@use "media" as *;
+
+// Базовый размер шрифта
+$base-font-size: 16px;
+
+// Функция для конвертации px в rem
+@function rem($pixels) {
+  @return math.div($pixels, $base-font-size) * 1rem;
+}
+
+// Размеры шрифтов
+$font-sizes: (
+  // Заголовки
+  h1: (
+    default: rem(32px),
+    tablet: rem(28px),
+    mobile: rem(24px)
+  ),
+  h2: (
+    default: rem(28px),
+    tablet: rem(24px),
+    mobile: rem(20px)
+  ),
+  h3: (
+    default: rem(24px),
+    tablet: rem(20px),
+    mobile: rem(18px)
+  ),
+  // Текст
+  body: (
+    default: rem(20px),
+    tablet: rem(18px),
+    mobile: rem(16px)
+  ),
+  small: (
+    default: rem(16px),
+    tablet: rem(14px),
+    mobile: rem(14px)
+  ),
+  // Элементы интерфейса
+  button: (
+    default: rem(20px),
+    tablet: rem(18px),
+    mobile: rem(16px)
+  ),
+  badge: (
+    default: rem(18px),
+    tablet: rem(16px),
+    mobile: rem(14px)
+  ),
+  // Таблица
+  table-header: (
+    default: rem(20px),
+    tablet: rem(18px),
+    mobile: rem(16px)
+  ),
+  table-cell: (
+    default: rem(20px),
+    tablet: rem(18px),
+    mobile: rem(16px)
+  )
+);
+
+// Миксин для применения размеров шрифта
+@mixin font-size($element) {
+  font-size: map.get(map.get($font-sizes, $element), default);
+
+  @include tablet {
+    font-size: map.get(map.get($font-sizes, $element), tablet);
+  }
+
+  @include mobile {
+    font-size: map.get(map.get($font-sizes, $element), mobile);
+  }
+}
+
+// Базовые стили для типографики
+h1, .h1 {
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: rem(24px);
+  @include font-size(h1);
+}
+
+h2, .h2 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: rem(20px);
+  @include font-size(h2);
+}
+
+h3, .h3 {
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: rem(16px);
+  @include font-size(h3);
+}
+
+p, .text {
+  line-height: 1.5;
+  margin-bottom: rem(16px);
+  @include font-size(body);
+}
+
+small, .small {
+  line-height: 1.4;
+  @include font-size(small);
+}
+
+button, .button {
+  font-weight: 500;
+  @include font-size(button);
+}
+
+.badge {
+  font-weight: 500;
+  @include font-size(badge);
+}
+
+// Стили для таблицы
+th {
+  font-weight: 600;
+  @include font-size(table-header);
+}
+
+td {
+  @include font-size(table-cell);
+}
