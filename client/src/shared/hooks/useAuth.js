@@ -6,7 +6,7 @@ export function useAuth() {
   const user = {
     id: 1,
     name: "Demo User",
-    role: ROLES.USER, // меняй тут: ADMIN / KRAEVED / EDITOR / USER
+    role: ROLES.ADMIN, // меняй тут: ADMIN / KRAEVED / EDITOR / USER
   };
 
   return {

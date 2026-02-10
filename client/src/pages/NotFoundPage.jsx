@@ -1,13 +1,19 @@
-import PageShell from "../shared/ui/PageShell";
+import { Button, Result } from "antd";
 import { Link } from "react-router-dom";
+import PageShell from "../shared/ui/PageShell";
 
 export default function NotFoundPage() {
   return (
     <PageShell title="404" subtitle="Страница не найдена">
-      <div style={{ display: "grid", gap: 12 }}>
-        <div>Такой страницы нет.</div>
-        <Link to="/">← На главную</Link>
-      </div>
+      <Result
+        status="404"
+        title="Такой страницы нет."
+        extra={
+          <Link to="/">
+            <Button type="primary">На главную</Button>
+          </Link>
+        }
+      />
     </PageShell>
   );
 }

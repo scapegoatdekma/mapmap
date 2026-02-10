@@ -1,12 +1,13 @@
+import { Empty } from "antd";
 import PageShell from "../shared/ui/PageShell";
 
 export default function MuseumsPage() {
   return (
     <PageShell
       title="Музеи"
-      subtitle="Каталог музеев и исторических мест."
+      subtitle="Подборки музеев, экспозиций и маршрутов."
     >
-      <div>Каталог музеев будет тут.</div>
+      <Empty description="Список музеев появится здесь." />
     </PageShell>
   );
 }

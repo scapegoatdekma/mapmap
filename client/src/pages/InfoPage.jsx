@@ -1,12 +1,13 @@
+import { Empty } from "antd";
 import PageShell from "../shared/ui/PageShell";
 
 export default function InfoPage() {
   return (
     <PageShell
-      title="Информация"
-      subtitle="Справка, разделы, ссылки, полезные данные."
+      title="Нфо"
+      subtitle="Справочные материалы и помощь."
     >
-      <div>Информация будет тут.</div>
+      <Empty description="Справочные материалы будут здесь." />
     </PageShell>
   );
 }

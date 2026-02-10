@@ -1,12 +1,13 @@
+import { Empty } from "antd";
 import PageShell from "../shared/ui/PageShell";
 
 export default function EventsPage() {
   return (
     <PageShell
-      title="Афиша"
-      subtitle="Мероприятия клубов, музеев, культурные события."
+      title="События"
+      subtitle="Тематические отборы, календарь и подборки."
     >
-      <div>Список мероприятий будет тут.</div>
+      <Empty description="Список событий появится здесь." />
     </PageShell>
   );
 }

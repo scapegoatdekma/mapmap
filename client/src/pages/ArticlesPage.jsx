@@ -1,12 +1,13 @@
+import { Empty } from "antd";
 import PageShell from "../shared/ui/PageShell";
 
 export default function ArticlesPage() {
   return (
     <PageShell
       title="Статьи"
-      subtitle="Исторические материалы, заметки, архивы."
+      subtitle="Сторические материалы, заметки, архивы."
     >
-      <div>Список статей будет тут.</div>
+      <Empty description="Список статей будет тут." />
     </PageShell>
   );
 }
