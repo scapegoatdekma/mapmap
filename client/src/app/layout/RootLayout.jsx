@@ -37,6 +37,7 @@ export default function RootLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
+  const isMapRoute = location.pathname.startsWith("/map");
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767.98px)");
@@ -82,7 +83,7 @@ export default function RootLayout() {
   if (isAuthRoute) {
     return (
       <Layout style={{ minHeight: "100vh" }} className="app-layout auth-layout">
-        <Content style={{ padding: 16 }} className="app-content auth-content">
+        <Content className="app-content auth-content">
           <div className="auth-shell">
             <Outlet />
           </div>
@@ -123,7 +124,7 @@ export default function RootLayout() {
             <Typography.Text strong>MapMap</Typography.Text>
           </Space>
         </Header>
-        <Content style={{ padding: 16 }} className="app-content">
+        <Content className={`app-content ${isMapRoute ? "app-content--map" : ""}`.trim()}>
           <Outlet />
         </Content>
         {isMobile && (

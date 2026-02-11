@@ -1,8 +1,8 @@
 import { Card, Space, Typography } from "antd";
 
-export default function PageShell({ title, subtitle, children }) {
+export default function PageShell({ title, subtitle, children, className = "" }) {
   return (
-    <div className="page-shell">
+    <div className={`page-shell ${className}`.trim()}>
       <Space direction="vertical" size="large" style={{ width: "100%" }} className="page-shell__stack">
         <div className="page-shell__head">
           <Typography.Title level={2} style={{ marginBottom: 0 }}>

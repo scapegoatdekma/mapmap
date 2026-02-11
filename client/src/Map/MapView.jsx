@@ -24,6 +24,7 @@ export default function YandexMap({
   onAreaClick,
   editableAreaId,
   onAreaCoordsChange,
+  focusMarker,
 }) {
   const { ymaps, error } = useYandexMaps();
   const mapElRef = useRef(null);
@@ -115,6 +116,16 @@ export default function YandexMap({
       map.geoObjects.add(pm);
     }
   }, [ready, ymaps, markers, onMarkerClick]);
+
+  useEffect(() => {
+    if (!ready || !mapRef.current || !focusMarker) return;
+    const map = mapRef.current;
+    if (typeof focusMarker.latitude === "number" && typeof focusMarker.longitude === "number") {
+      map.setCenter([focusMarker.latitude, focusMarker.longitude], Math.max(map.getZoom(), 13), {
+        duration: 300,
+      });
+    }
+  }, [ready, focusMarker]);
 
   useEffect(() => {
     if (!ready || !ymaps || !mapRef.current) return;

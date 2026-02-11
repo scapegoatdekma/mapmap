@@ -1,9 +1,43 @@
-import { Button, Form, Input, Row, Col, Space, Tag, Typography } from "antd";
+import { Button, Card, Form, Input, Row, Col, Space, Tag, Typography } from "antd";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import PageShell from "../shared/ui/PageShell";
 import FeatureCard from "../shared/ui/FeatureCard";
 import TextList from "../shared/ui/TextList";
 
 export default function ProfilePage() {
+  const [favorites, setFavorites] = useState([]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("mapmap.favorites");
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed)) {
+        setFavorites(parsed.map(String));
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const favoriteMarkers = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("mapmap.markers");
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(parsed)) return [];
+      const ids = new Set(favorites.map(String));
+      return parsed.filter((item) => ids.has(String(item.id)));
+    } catch (e) {
+      return [];
+    }
+  }, [favorites]);
+
+  const removeFavorite = (id) => {
+    const next = favorites.filter((item) => String(item) !== String(id));
+    setFavorites(next);
+    localStorage.setItem("mapmap.favorites", JSON.stringify(next));
+  };
+
   return (
     <PageShell
       title="Профиль"
@@ -13,7 +47,8 @@ export default function ProfilePage() {
         <Space direction="vertical" size={4}>
           <Tag color="purple">User</Tag>
           <Typography.Title level={4} style={{ margin: 0 }}>
-            Личный кабинет путешественника</Typography.Title>
+            Личный кабинет путешественника
+          </Typography.Title>
           <Typography.Text type="secondary">
             стория маршрутов, избранные точки и доступ к планированию.
           </Typography.Text>
@@ -23,7 +58,7 @@ export default function ProfilePage() {
           <Col xs={24} lg={14}>
             <FeatureCard label="Profile" title="Редактирование профиля">
               <Form layout="vertical">
-                <Form.Item label="Мя">
+                <Form.Item label="Имя">
                   <Input placeholder="Дмитрий" />
                 </Form.Item>
                 <Form.Item label="Почта">
@@ -32,7 +67,7 @@ export default function ProfilePage() {
                 <Form.Item label="Город">
                   <Input placeholder="Тула" />
                 </Form.Item>
-                <Form.Item label="Нтересы">
+                <Form.Item label="Интересы">
                   <Input placeholder="Архитектура, музеи, прогулки" />
                 </Form.Item>
                 <Space>
@@ -68,7 +103,7 @@ export default function ProfilePage() {
                 title="Билеты и поездки"
                 actions={
                   <>
-                    <Button>стория билетов</Button>
+                    <Button>История билетов</Button>
                     <Button type="primary">Вызвать такси</Button>
                   </>
                 }
@@ -87,18 +122,37 @@ export default function ProfilePage() {
 
         <Row gutter={[16, 16]}>
           <Col xs={24} lg={8}>
-            <FeatureCard label="Favorites" title="Збранные места">
-              <TextList
-                items={[
-                  "Сохраненные метки и музеи",
-                  "Личные заметки и фото",
-                  "Шаблоны подборок",
-                ]}
-              />
+            <FeatureCard label="Favorites" title="Избранные места">
+              {favoriteMarkers.length === 0 ? (
+                <Typography.Text type="secondary">
+                  Здесь будут ваши сохраненные места.
+                </Typography.Text>
+              ) : (
+                <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                  {favoriteMarkers.map((marker) => (
+                    <Card key={marker.id} size="small">
+                      <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                        <Typography.Text strong>{marker.name}</Typography.Text>
+                        <Typography.Text type="secondary">
+                          {marker.area || "Без района"}
+                        </Typography.Text>
+                        <Space>
+                          <Link to={`/markers/${marker.id}`}>
+                            <Button type="primary">Открыть</Button>
+                          </Link>
+                          <Button onClick={() => removeFavorite(marker.id)}>
+                            Удалить
+                          </Button>
+                        </Space>
+                      </Space>
+                    </Card>
+                  ))}
+                </Space>
+              )}
             </FeatureCard>
           </Col>
           <Col xs={24} lg={8}>
-            <FeatureCard label="History" title="Стория активностей">
+            <FeatureCard label="History" title="История активностей">
               <TextList
                 items={[
                   "Посещенные события и статьи",

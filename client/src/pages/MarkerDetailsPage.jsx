@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, Card, Descriptions, Image, Space, Tag, Typography } from "antd";
 import { Link, useParams } from "react-router-dom";
 import PageShell from "../shared/ui/PageShell";
 
 export default function MarkerDetailsPage() {
   const { id } = useParams();
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const marker = useMemo(() => {
     try {
@@ -17,6 +18,36 @@ export default function MarkerDetailsPage() {
       return null;
     }
   }, [id]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("mapmap.favorites");
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed)) {
+        setIsFavorite(parsed.includes(String(id)));
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [id]);
+
+  const toggleFavorite = () => {
+    const key = "mapmap.favorites";
+    try {
+      const raw = localStorage.getItem(key);
+      const parsed = raw ? JSON.parse(raw) : [];
+      const next = new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+      if (next.has(String(id))) {
+        next.delete(String(id));
+      } else {
+        next.add(String(id));
+      }
+      localStorage.setItem(key, JSON.stringify([...next]));
+      setIsFavorite(next.has(String(id)));
+    } catch (e) {
+      // ignore
+    }
+  };
 
   if (!marker) {
     return (
@@ -54,6 +85,14 @@ export default function MarkerDetailsPage() {
               {marker.latitude?.toFixed?.(6) ?? "—"}, {marker.longitude?.toFixed?.(6) ?? "—"}
             </Descriptions.Item>
           </Descriptions>
+          <Space style={{ marginTop: 12 }}>
+            <Button type={isFavorite ? "default" : "primary"} onClick={toggleFavorite}>
+              {isFavorite ? "Убрать из избранного" : "В избранное"}
+            </Button>
+            <Link to="/map">
+              <Button>На карту</Button>
+            </Link>
+          </Space>
         </Card>
 
         <Card title="Связанные объекты">
