@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, Form, Space } from "antd";
-import { StarOutlined, ThunderboltOutlined } from "@ant-design/icons";
 import YandexMap from "../Map/MapView.jsx";
 import { useAuth } from "../shared/hooks/useAuth";
 import { ROLES } from "../shared/constants/roles";
@@ -8,9 +7,6 @@ import MapOverlay from "./MapPage/components/MapOverlay";
 import AreasList from "./MapPage/components/AreasList";
 import MarkerModal from "./MapPage/components/MarkerModal";
 import AreaModal from "./MapPage/components/AreaModal";
-import MarkerPanel from "./MapPage/components/MarkerPanel";
-import FavoritesPanel from "./MapPage/components/FavoritesPanel";
-import RecommendationsPanel from "./MapPage/components/RecommendationsPanel";
 
 const STORAGE_MARKERS = "mapmap.markers";
 const STORAGE_AREAS = "mapmap.areas";
@@ -33,51 +29,11 @@ const createId = () => {
   return `m_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 };
 
-const hasImage = (marker) =>
-  Array.isArray(marker.media) && marker.media.some((url) => typeof url === "string" && url.trim());
-
-const getRecommendations = (markers, favorites) => {
-  if (!Array.isArray(markers) || markers.length === 0) return [];
-  const withMedia = markers.filter(hasImage);
-  if (withMedia.length === 0) return [];
-  const favIds = new Set((favorites || []).map(String));
-  const favMarkers = withMedia.filter((m) => favIds.has(String(m.id)));
-  if (favMarkers.length === 0) return withMedia.slice(0, 6);
-
-  const areaSet = new Set(favMarkers.map((m) => m.area).filter(Boolean));
-  const categorySet = new Set(favMarkers.map((m) => m.category).filter(Boolean));
-  const tagSet = new Set(
-    favMarkers.flatMap((m) => (Array.isArray(m.tags) ? m.tags : [])).filter(Boolean)
-  );
-
-  const scored = withMedia
-    .filter((m) => !favIds.has(String(m.id)))
-    .map((m) => {
-      let score = 0;
-      if (m.area && areaSet.has(m.area)) score += 2;
-      if (m.category && categorySet.has(m.category)) score += 2;
-      if (Array.isArray(m.tags)) {
-        for (const tag of m.tags) {
-          if (tagSet.has(tag)) score += 1;
-        }
-      }
-      return { marker: m, score };
-    })
-    .sort((a, b) => b.score - a.score);
-
-  const top = scored.filter((item) => item.score > 0).slice(0, 6).map((item) => item.marker);
-  return top.length > 0 ? top : withMedia.slice(0, 6);
-};
-
 export default function MapPage() {
   const { role } = useAuth();
   const canEdit = role === ROLES.KRAEVED || role === ROLES.ADMIN;
   const [markers, setMarkers] = useState([]);
   const [areas, setAreas] = useState([]);
-  const [favorites, setFavorites] = useState([]);
-  const [selectedMarker, setSelectedMarker] = useState(null);
-  const [showFavorites, setShowFavorites] = useState(false);
-  const [showRecommendations, setShowRecommendations] = useState(false);
   const [markersLoaded, setMarkersLoaded] = useState(false);
   const [areasLoaded, setAreasLoaded] = useState(false);
   const [editMode, setEditMode] = useState("marker"); // marker | area
@@ -94,10 +50,6 @@ export default function MapPage() {
   const [areaForm] = Form.useForm();
   const watchedLat = Form.useWatch("latitude", form);
   const watchedLng = Form.useWatch("longitude", form);
-  const watchedMedia = Form.useWatch("media", form);
-  const watchedMuseums = Form.useWatch("relatedMuseums", form);
-  const watchedClubs = Form.useWatch("relatedClubs", form);
-  const watchedEvents = Form.useWatch("relatedEvents", form);
 
   useEffect(() => {
     try {
@@ -112,18 +64,6 @@ export default function MapPage() {
       // ignore
     }
     setMarkersLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("mapmap.favorites");
-      const parsed = raw ? JSON.parse(raw) : [];
-      if (Array.isArray(parsed)) {
-        setFavorites(parsed.map(String));
-      }
-    } catch (e) {
-      // ignore
-    }
   }, []);
 
   useEffect(() => {
@@ -158,9 +98,6 @@ export default function MapPage() {
       description: "",
       category: "place",
       related: "",
-      relatedMuseums: "",
-      relatedClubs: "",
-      relatedEvents: "",
       media: "",
       area: "",
       latitude,
@@ -183,9 +120,6 @@ export default function MapPage() {
       description: marker.description ?? "",
       category: marker.category ?? "place",
       related: (marker.related || []).join(", "),
-      relatedMuseums: (marker.relatedMuseums || []).join(", "),
-      relatedClubs: (marker.relatedClubs || []).join(", "),
-      relatedEvents: (marker.relatedEvents || []).join(", "),
       media: (marker.media || []).join("\n"),
       area: marker.area ?? "",
       latitude: marker.latitude,
@@ -209,19 +143,16 @@ export default function MapPage() {
       description: values.description?.trim() || "",
       category: values.category,
       related: values.related
-        ? values.related.split(",").map((item) => item.trim()).filter(Boolean)
-        : [],
-      relatedMuseums: values.relatedMuseums
-        ? values.relatedMuseums.split(",").map((item) => item.trim()).filter(Boolean)
-        : [],
-      relatedClubs: values.relatedClubs
-        ? values.relatedClubs.split(",").map((item) => item.trim()).filter(Boolean)
-        : [],
-      relatedEvents: values.relatedEvents
-        ? values.relatedEvents.split(",").map((item) => item.trim()).filter(Boolean)
+        ? values.related
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
         : [],
       media: values.media
-        ? values.media.split("\n").map((item) => item.trim()).filter(Boolean)
+        ? values.media
+            .split("\n")
+            .map((item) => item.trim())
+            .filter(Boolean)
         : [],
       area: values.area?.trim() || "",
       address: values.address?.trim() || "",
@@ -231,7 +162,10 @@ export default function MapPage() {
       tickets: values.tickets?.trim() || "",
       source: values.source?.trim() || "",
       tags: values.tags
-        ? values.tags.split(",").map((item) => item.trim()).filter(Boolean)
+        ? values.tags
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
         : [],
       latitude: Number(values.latitude),
       longitude: Number(values.longitude),
@@ -274,9 +208,12 @@ export default function MapPage() {
       id: activeArea?.id ?? createId(),
       name: values.name.trim(),
       description: values.description?.trim() || "",
-      type: values.type || "district",
+      type: values.type,
       tags: values.tags
-        ? values.tags.split(",").map((item) => item.trim()).filter(Boolean)
+        ? values.tags
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
         : [],
       coords: values.coords || [],
       fillColor: activeArea?.fillColor || "rgba(22,119,255,0.2)",
@@ -311,10 +248,7 @@ export default function MapPage() {
   };
 
   const handleMapClick = (lat, lng) => {
-    if (!canEdit) {
-      setSelectedMarker(null);
-      return;
-    }
+    if (!canEdit) return;
     if (editMode === "area") {
       setDraftAreaCoords((prev) => [...prev, [lat, lng]]);
       return;
@@ -328,73 +262,15 @@ export default function MapPage() {
   };
 
   const selectedArea = areas.find((area) => area.id === selectedAreaId) || null;
-  const selectedAreaDraft = selectedAreaId ? areaEditsRef.current[selectedAreaId] : null;
-
-  const favoriteMarkers = useMemo(() => {
-    const ids = new Set(favorites.map(String));
-    return markers.filter((marker) => ids.has(String(marker.id)));
-  }, [favorites, markers]);
-
-  const recommendedMarkers = useMemo(
-    () => getRecommendations(markers, favorites),
-    [markers, favorites]
-  );
-
-  const isFavorite = (id) => favorites.includes(String(id));
-
-  const toggleFavorite = (id) => {
-    const next = new Set(favorites.map(String));
-    if (next.has(String(id))) {
-      next.delete(String(id));
-    } else {
-      next.add(String(id));
-    }
-    const arr = Array.from(next);
-    setFavorites(arr);
-    localStorage.setItem("mapmap.favorites", JSON.stringify(arr));
-  };
+  const selectedAreaDraft = selectedAreaId
+    ? areaEditsRef.current[selectedAreaId]
+    : null;
 
   return (
     <div className="map-page">
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
         <Card className="map-page__card" bodyStyle={{ padding: 0 }}>
           <div className="map-page__frame">
-            {!canEdit && (
-              <div className="map-mini-actions">
-                <button
-                  type="button"
-                  className={`map-mini-actions__btn ${showFavorites ? "is-active" : ""}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowFavorites((prev) => {
-                      const next = !prev;
-                      if (next) setShowRecommendations(false);
-                      return next;
-                    });
-                  }}
-                  aria-label="Избранные"
-                >
-                  <StarOutlined />
-                </button>
-                <button
-                  type="button"
-                  className={`map-mini-actions__btn ${showRecommendations ? "is-active" : ""}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowRecommendations((prev) => {
-                      const next = !prev;
-                      if (next) setShowFavorites(false);
-                      return next;
-                    });
-                  }}
-                  aria-label="Рекомендации"
-                >
-                  <ThunderboltOutlined />
-                </button>
-              </div>
-            )}
             <MapOverlay
               canEdit={canEdit}
               showTip={showTip}
@@ -415,8 +291,10 @@ export default function MapPage() {
                 if (!selectedAreaId || !draft || draft.length < 3) return;
                 setAreas((prev) =>
                   prev.map((area) =>
-                    area.id === selectedAreaId ? { ...area, coords: draft } : area
-                  )
+                    area.id === selectedAreaId
+                      ? { ...area, coords: draft }
+                      : area,
+                  ),
                 );
                 delete areaEditsRef.current[selectedAreaId];
                 setEditableAreaId(null);
@@ -429,15 +307,13 @@ export default function MapPage() {
                 images: m.media && m.media.length ? m.media : [],
               }))}
               areas={areas}
-              draftArea={editMode === "area" ? { coords: draftAreaCoords } : null}
-              focusMarker={selectedMarker}
+              draftArea={
+                editMode === "area" ? { coords: draftAreaCoords } : null
+              }
               onMapClick={handleMapClick}
               onMarkerClick={(marker) => {
-                if (canEdit) {
-                  openEditModal(marker);
-                  return;
-                }
-                setSelectedMarker(marker);
+                if (!canEdit) return;
+                openEditModal(marker);
               }}
               onAreaClick={(area, coords) => {
                 if (!canEdit) return;
@@ -453,50 +329,13 @@ export default function MapPage() {
               onAreaCoordsChange={(areaId, coords) => {
                 areaEditsRef.current[areaId] = coords;
               }}
-              onMarkerClick={(marker) => {
-                if (canEdit) {
-                  openEditModal(marker);
-                  return;
-                }
-                setSelectedMarker(marker);
-              }}
             />
-            {!canEdit && (showFavorites || showRecommendations) && (
-              <div className="map-mini-panels">
-                {showFavorites && (
-                  <FavoritesPanel
-                    items={favoriteMarkers}
-                    onSelect={(marker) => setSelectedMarker(marker)}
-                    onRemove={toggleFavorite}
-                    compact
-                    onClose={() => setShowFavorites(false)}
-                  />
-                )}
-                {showRecommendations && (
-                  <RecommendationsPanel
-                    items={recommendedMarkers}
-                    onSelect={(marker) => setSelectedMarker(marker)}
-                    compact
-                    onClose={() => setShowRecommendations(false)}
-                  />
-                )}
-              </div>
-            )}
           </div>
         </Card>
         {canEdit && areas.length > 0 && (
-          <AreasList areas={areas} areaTypes={AREA_TYPES} onOpen={openAreaModal} />
+          <AreasList areas={areas} onOpen={openAreaModal} />
         )}
       </Space>
-
-      {!canEdit && selectedMarker && (
-        <MarkerPanel
-          marker={selectedMarker}
-          isFavorite={isFavorite(selectedMarker.id)}
-          onToggleFavorite={() => toggleFavorite(selectedMarker.id)}
-          onClose={() => setSelectedMarker(null)}
-        />
-      )}
 
       <MarkerModal
         open={isModalOpen}
@@ -507,10 +346,6 @@ export default function MapPage() {
         form={form}
         watchedLat={watchedLat}
         watchedLng={watchedLng}
-        watchedMedia={watchedMedia}
-        watchedMuseums={watchedMuseums}
-        watchedClubs={watchedClubs}
-        watchedEvents={watchedEvents}
         categoryOptions={CATEGORY_OPTIONS}
       />
 

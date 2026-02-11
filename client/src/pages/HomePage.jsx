@@ -89,7 +89,9 @@ export default function HomePage() {
 
   const recommendations = useMemo(() => {
     const withMedia = markers.filter(
-      (m) => Array.isArray(m.media) && m.media.some((url) => typeof url === "string" && url.trim())
+      (m) =>
+        Array.isArray(m.media) &&
+        m.media.some((url) => typeof url === "string" && url.trim()),
     );
     if (withMedia.length === 0) return [];
     const favIds = new Set(favorites.map(String));
@@ -97,9 +99,13 @@ export default function HomePage() {
     if (favMarkers.length === 0) return withMedia.slice(0, 4);
 
     const areaSet = new Set(favMarkers.map((m) => m.area).filter(Boolean));
-    const categorySet = new Set(favMarkers.map((m) => m.category).filter(Boolean));
+    const categorySet = new Set(
+      favMarkers.map((m) => m.category).filter(Boolean),
+    );
     const tagSet = new Set(
-      favMarkers.flatMap((m) => (Array.isArray(m.tags) ? m.tags : [])).filter(Boolean)
+      favMarkers
+        .flatMap((m) => (Array.isArray(m.tags) ? m.tags : []))
+        .filter(Boolean),
     );
 
     const scored = withMedia
@@ -117,7 +123,10 @@ export default function HomePage() {
       })
       .sort((a, b) => b.score - a.score);
 
-    const top = scored.filter((item) => item.score > 0).slice(0, 4).map((item) => item.marker);
+    const top = scored
+      .filter((item) => item.score > 0)
+      .slice(0, 4)
+      .map((item) => item.marker);
     return top.length > 0 ? top : withMedia.slice(0, 4);
   }, [markers, favorites]);
 
@@ -158,7 +167,7 @@ export default function HomePage() {
                 />
               ) : (
                 <Typography.Text type="secondary">
-                  зображение: мягкий дуотон города + тонкая линия маршрута.
+                  Изображение: мягкий дуотон города + тонкая линия маршрута.
                 </Typography.Text>
               )}
             </Card>
@@ -206,7 +215,7 @@ export default function HomePage() {
                     ) : (
                       <Card>
                         <Typography.Text type="secondary">
-                          зображение: hero-иллюстрация для раздела.
+                          Изображение: hero-иллюстрация для раздела.
                         </Typography.Text>
                       </Card>
                     )}
@@ -256,9 +265,14 @@ export default function HomePage() {
             <div className="home-recommendations-banner">
               <div className="home-recommendations-banner__track">
                 {[...recommendations, ...recommendations].map((marker, idx) => {
-                  const image = Array.isArray(marker.media) ? marker.media[0] : "";
+                  const image = Array.isArray(marker.media)
+                    ? marker.media[0]
+                    : "";
                   return (
-                    <div key={`${marker.id}-${idx}`} className="home-recommendations-banner__item">
+                    <div
+                      key={`${marker.id}-${idx}`}
+                      className="home-recommendations-banner__item"
+                    >
                       <Image
                         src={image}
                         alt={marker.name}
